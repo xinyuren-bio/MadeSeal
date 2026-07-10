@@ -112,6 +112,20 @@
 <!-- 下载按钮 -->
 <button type="button" class="btn-download-fixed" id="btn-download">下载</button>
 
+<!-- 手机端保存弹窗：长按图片保存 -->
+<div class="save-modal hidden" id="save-modal" role="dialog" aria-modal="true">
+  <div class="save-modal-backdrop" id="save-modal-backdrop"></div>
+  <div class="save-modal-panel">
+    <button type="button" class="save-modal-close" id="save-modal-close" aria-label="关闭">×</button>
+    <h2 class="save-modal-title">保存印章图片</h2>
+    <p class="save-modal-tip" id="save-modal-tip"></p>
+    <div class="save-modal-img-wrap">
+      <img id="save-modal-img" alt="印章预览" draggable="false">
+    </div>
+    <p class="save-modal-hint">提示：可长按上方图片 → 保存到相册</p>
+  </div>
+</div>
+
 <script src="/js/defaults.js"></script>
 <script src="/js/seal-renderer.js"></script>
 <script src="/js/storage.js"></script>

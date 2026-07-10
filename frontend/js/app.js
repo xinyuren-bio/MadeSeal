@@ -142,6 +142,90 @@
   }
 
   /**
+   * 是否为手机端
+   */
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  }
+
+  /**
+   * 是否为微信内置浏览器
+   */
+  function isWeChat() {
+    return /MicroMessenger/i.test(navigator.userAgent);
+  }
+
+  /**
+   * 显示手机端保存弹窗
+   */
+  function showSaveModal(dataUrl) {
+    var modal = document.getElementById("save-modal");
+    var img = document.getElementById("save-modal-img");
+    var tip = document.getElementById("save-modal-tip");
+    if (!modal || !img) return;
+
+    img.src = dataUrl;
+    if (tip) {
+      tip.textContent = isWeChat()
+        ? "微信内无法直接下载，请长按下方图片保存，或点右上角 ··· → 在浏览器中打开"
+        : "请长按下方图片，选择「保存图片」或「添加到相册」";
+    }
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  /**
+   * 关闭保存弹窗
+   */
+  function hideSaveModal() {
+    var modal = document.getElementById("save-modal");
+    if (modal) modal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  /**
+   * 初始化保存弹窗
+   */
+  function initSaveModal() {
+    var backdrop = document.getElementById("save-modal-backdrop");
+    var closeBtn = document.getElementById("save-modal-close");
+    if (backdrop) backdrop.addEventListener("click", hideSaveModal);
+    if (closeBtn) closeBtn.addEventListener("click", hideSaveModal);
+  }
+
+  /**
+   * 桌面端触发文件下载
+   */
+  function downloadFile(dataUrl, filename) {
+    var link = document.createElement("a");
+    link.download = filename;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  /**
+   * 处理下载/保存
+   */
+  function handleDownload() {
+    readForm();
+    var name = cfg.subtitle || cfg.title || "印章";
+    var filename = name + ".png";
+    var dataUrl = window.SealRenderer.toDataURL(cfg);
+
+    if (isMobile() || isWeChat()) {
+      showSaveModal(dataUrl);
+    } else {
+      downloadFile(dataUrl, filename);
+    }
+
+    if (window.SealStorage) {
+      window.SealStorage.add(cfg, dataUrl);
+    }
+  }
+
+  /**
    * 绑定所有输入事件
    */
   function bindEvents() {
@@ -166,19 +250,13 @@
     });
 
     if (btnDownload) {
-      btnDownload.addEventListener("click", function () {
-        readForm();
-        var name = cfg.subtitle || cfg.title || "印章";
-        var dataUrl = window.SealRenderer.download(cfg, name + ".png");
-        if (window.SealStorage) {
-          window.SealStorage.add(cfg, dataUrl);
-        }
-      });
+      btnDownload.addEventListener("click", handleDownload);
     }
   }
 
   initColors();
   initTabs();
+  initSaveModal();
   fillForm();
   bindEvents();
 
