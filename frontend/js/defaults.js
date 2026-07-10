@@ -26,7 +26,7 @@
     subtitlePos: 78,
     serialSize: 18,
     serialOffset: -8,
-    serialAngle: 200,
+    serialAngle: 90,
     starSize: 100,
     starPos: 0,
     borderSize: 12,

@@ -251,9 +251,9 @@
     // 按编码字数紧缩弧度，并以标题角度为上限，避免左右与上弧重叠
     var byChars = serialLen * 10 + 35;
     var byTitle = titleAngle * (serialLen / titleLen) * 0.82;
-    var maxAngle = cfg.serialAngle || 200;
+    var maxAngle = cfg.serialAngle || 90;
     var serialAngle = Math.min(maxAngle, byChars, byTitle, titleAngle * 0.82);
-    serialAngle = Math.max(90, serialAngle);
+    serialAngle = Math.max(60, serialAngle);
 
     return { serialPos: serialPos, serialAngle: serialAngle };
   }
