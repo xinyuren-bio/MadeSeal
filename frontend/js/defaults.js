@@ -9,7 +9,7 @@
     size: 400,
     color: "#bb1918",
     font: "sourceHan",
-    agingLevel: 74,
+    agingLevel: 42,
 
     // 基础设置
     title: "",
@@ -23,7 +23,7 @@
     subtitlePos: 78,
     starSize: 100,
     starPos: 0,
-    borderSize: 8,
+    borderSize: 12,
 
     // 其他设置（字宽/字高比例）
     titleScaleX: 0.8,

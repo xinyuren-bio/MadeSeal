@@ -229,7 +229,7 @@
     var color = cfg.color || "#bb1918";
     var font = fontFamily(cfg);
     var weight = fontWeight(cfg);
-    var borderW = (cfg.borderSize || 8) * s;
+    var borderW = (cfg.borderSize || 12) * s;
     var outerR = size / 2 - borderW * 1.2;
 
     ctx.clearRect(0, 0, size, size);
