@@ -15,9 +15,9 @@ uvicorn main:app --host 0.0.0.0 --port 8088 --reload
 ## 推送到 GitHub
 
 ```bash
-# 在 GitHub 新建空仓库：xinyuren-bio/seal（不要勾选 README）
+# 在 GitHub 仓库：xinyuren-bio/MadeSeal
 cd seal
-git remote add origin git@github.com:xinyuren-bio/seal.git
+git remote add origin git@github.com:xinyuren-bio/MadeSeal.git
 git push -u origin main
 ```
 
@@ -44,7 +44,7 @@ yum install -y git python3 python3-pip
 
 ```bash
 cd ~
-git clone git@github.com:xinyuren-bio/seal.git
+git clone https://github.com/xinyuren-bio/MadeSeal.git
 cd seal
 ```
 
