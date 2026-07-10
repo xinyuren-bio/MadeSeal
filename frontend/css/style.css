@@ -246,6 +246,14 @@ body {
   line-height: 1.6;
 }
 
+.site-credits {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 0 16px 16px;
+  line-height: 1.8;
+  text-align: center;
+}
+
 /* ---- Download Button ---- */
 .btn-download-fixed {
   position: fixed;
