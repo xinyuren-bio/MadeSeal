@@ -9,14 +9,42 @@
 
   // 所有可绑定字段 ID 列表
   var FIELD_IDS = [
-    "title", "subtitle", "font", "agingLevel",
+    "sealFormat", "title", "subtitle", "serial", "font", "agingLevel",
     "titleSize", "titlePos", "titleAngle",
     "subtitleSize", "subtitlePos",
+    "serialSize", "serialPos", "serialAngle",
     "starSize", "starPos", "borderSize",
     "titleScaleX", "titleScaleY",
     "subtitleScaleX", "subtitleScaleY",
+    "serialScaleX", "serialScaleY",
     "output-size",
   ];
+
+  /**
+   * 根据印章格式切换界面显示
+   */
+  function updateFormatUI() {
+    var fmt = cfg.sealFormat || "standard";
+    var isVillage = fmt === "village";
+    var subtitleGroup = document.getElementById("subtitle-group");
+    var subtitleAdvanced = document.getElementById("subtitle-advanced-group");
+    var subtitleOther = document.getElementById("subtitle-other-group");
+    var titleLabel = document.getElementById("title-label");
+    var titleInput = document.getElementById("title");
+
+    if (subtitleGroup) subtitleGroup.classList.toggle("hidden", isVillage);
+    if (subtitleAdvanced) subtitleAdvanced.classList.toggle("hidden", isVillage);
+    if (subtitleOther) subtitleOther.classList.toggle("hidden", isVillage);
+
+    if (titleLabel) {
+      titleLabel.textContent = isVillage ? "标题（自动追加村民委员会）" : "标题";
+    }
+    if (titleInput) {
+      titleInput.placeholder = isVillage
+        ? "如：定兴县北辛村"
+        : "请输入上弧标题";
+    }
+  }
 
   /**
    * 初始化颜色选择器
@@ -78,6 +106,7 @@
     var agingHint = document.getElementById("agingLevel-hint");
     if (agingLabel) agingLabel.textContent = cfg.agingLevel;
     if (agingHint) agingHint.textContent = agingHintText(cfg.agingLevel || 0);
+    updateFormatUI();
   }
 
   /**
@@ -244,6 +273,10 @@
           var agingHint = document.getElementById("agingLevel-hint");
           if (agingLabel) agingLabel.textContent = el.value;
           if (agingHint) agingHint.textContent = agingHintText(parseInt(el.value, 10));
+        }
+        if (id === "sealFormat") {
+          cfg.sealFormat = el.value;
+          updateFormatUI();
         }
         updatePreview();
       });

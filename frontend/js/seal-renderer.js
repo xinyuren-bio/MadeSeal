@@ -220,6 +220,21 @@
   }
 
   /**
+   * 根据格式生成上弧标题文字
+   */
+  function getArcTitle(cfg) {
+    var t = (cfg.title || "").trim();
+    if (cfg.sealFormat === "village") {
+      var suffix = "村民委员会";
+      if (t && t.slice(-suffix.length) !== suffix) {
+        return t + suffix;
+      }
+      return t || suffix;
+    }
+    return t;
+  }
+
+  /**
    * 绘制圆形公章
    */
   function drawCircleSeal(ctx, size, cfg) {
@@ -231,6 +246,7 @@
     var weight = fontWeight(cfg);
     var borderW = (cfg.borderSize || 12) * s;
     var outerR = size / 2 - borderW * 1.2;
+    var arcTitle = getArcTitle(cfg);
 
     ctx.clearRect(0, 0, size, size);
 
@@ -244,7 +260,7 @@
     // 标题（上弧）
     drawArcText(
       ctx,
-      cfg.title,
+      arcTitle,
       cx, cy,
       (cfg.titlePos || 150) * s,
       -90,
@@ -257,24 +273,42 @@
       weight
     );
 
+    // 编码（下弧）
+    drawArcText(
+      ctx,
+      cfg.serial,
+      cx, cy,
+      (cfg.serialPos || 140) * s,
+      90,
+      cfg.serialAngle || 225,
+      (cfg.serialSize || 18) * s,
+      color,
+      cfg.serialScaleX,
+      cfg.serialScaleY,
+      font,
+      weight
+    );
+
     // 五角星
     var starR = ((cfg.starSize || 100) * s) / 2;
     var starY = cy + (cfg.starPos || 0) * s;
     drawStar(ctx, cx, starY, starR, color);
 
-    // 副标题
-    drawFlatText(
-      ctx,
-      cfg.subtitle,
-      cx,
-      cy + (cfg.subtitlePos || 78) * s,
-      (cfg.subtitleSize || 40) * s,
-      color,
-      cfg.subtitleScaleX,
-      cfg.subtitleScaleY,
-      font,
-      weight
-    );
+    // 副标题（仅格式一）
+    if (cfg.sealFormat !== "village") {
+      drawFlatText(
+        ctx,
+        cfg.subtitle,
+        cx,
+        cy + (cfg.subtitlePos || 78) * s,
+        (cfg.subtitleSize || 40) * s,
+        color,
+        cfg.subtitleScaleX,
+        cfg.subtitleScaleY,
+        font,
+        weight
+      );
+    }
   }
 
   /**

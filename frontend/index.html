@@ -39,12 +39,23 @@
   <!-- 基础设置 -->
   <section class="tab-panel active" id="tab-basic">
     <div class="form-group">
-      <label for="title">标题</label>
-      <input type="text" id="title" maxlength="30" placeholder="请输入上弧标题">
+      <label for="sealFormat">印章格式</label>
+      <select id="sealFormat">
+        <option value="standard">格式一：上弧标题 + 中心副标题 + 下弧编码</option>
+        <option value="village">格式二：上弧标题村民委员会 + 下弧编码</option>
+      </select>
     </div>
     <div class="form-group">
+      <label for="title" id="title-label">标题</label>
+      <input type="text" id="title" maxlength="30" placeholder="请输入上弧标题">
+    </div>
+    <div class="form-group" id="subtitle-group">
       <label for="subtitle">副标题</label>
       <input type="text" id="subtitle" maxlength="12">
+    </div>
+    <div class="form-group">
+      <label for="serial">编码</label>
+      <input type="text" id="serial" maxlength="25" placeholder="下弧编码">
     </div>
     <div class="form-group">
       <label for="font">字体</label>
@@ -70,10 +81,16 @@
       <div class="slider-row"><label>位置</label><input type="range" id="titlePos" min="80" max="180" value="150"><span class="slider-val" id="titlePos-val">150</span></div>
       <div class="slider-row"><label>角度</label><input type="range" id="titleAngle" min="120" max="270" value="220"><span class="slider-val" id="titleAngle-val">220</span></div>
     </div>
-    <div class="slider-group">
+    <div class="slider-group" id="subtitle-advanced-group">
       <h3>副标题</h3>
       <div class="slider-row"><label>大小</label><input type="range" id="subtitleSize" min="10" max="60" value="40"><span class="slider-val" id="subtitleSize-val">40</span></div>
       <div class="slider-row"><label>位置</label><input type="range" id="subtitlePos" min="20" max="120" value="78"><span class="slider-val" id="subtitlePos-val">78</span></div>
+    </div>
+    <div class="slider-group">
+      <h3>编码</h3>
+      <div class="slider-row"><label>大小</label><input type="range" id="serialSize" min="8" max="40" value="18"><span class="slider-val" id="serialSize-val">18</span></div>
+      <div class="slider-row"><label>位置</label><input type="range" id="serialPos" min="80" max="180" value="140"><span class="slider-val" id="serialPos-val">140</span></div>
+      <div class="slider-row"><label>角度</label><input type="range" id="serialAngle" min="120" max="270" value="225"><span class="slider-val" id="serialAngle-val">225</span></div>
     </div>
     <div class="slider-group">
       <h3>五角星</h3>
@@ -93,10 +110,15 @@
       <div class="slider-row"><label>字宽</label><input type="range" id="titleScaleX" min="0.3" max="2" step="0.1" value="0.8"><span class="slider-val" id="titleScaleX-val">0.8</span></div>
       <div class="slider-row"><label>字高</label><input type="range" id="titleScaleY" min="0.3" max="2" step="0.1" value="1"><span class="slider-val" id="titleScaleY-val">1</span></div>
     </div>
-    <div class="slider-group">
+    <div class="slider-group" id="subtitle-other-group">
       <h3>副标题</h3>
       <div class="slider-row"><label>字宽</label><input type="range" id="subtitleScaleX" min="0.3" max="2" step="0.1" value="0.8"><span class="slider-val" id="subtitleScaleX-val">0.8</span></div>
       <div class="slider-row"><label>字高</label><input type="range" id="subtitleScaleY" min="0.3" max="2" step="0.1" value="1"><span class="slider-val" id="subtitleScaleY-val">1</span></div>
+    </div>
+    <div class="slider-group">
+      <h3>编码</h3>
+      <div class="slider-row"><label>字宽</label><input type="range" id="serialScaleX" min="0.3" max="2" step="0.1" value="1"><span class="slider-val" id="serialScaleX-val">1</span></div>
+      <div class="slider-row"><label>字高</label><input type="range" id="serialScaleY" min="0.3" max="2" step="0.1" value="1"><span class="slider-val" id="serialScaleY-val">1</span></div>
     </div>
     <div class="form-group">
       <label for="output-size">输出尺寸 <span id="size-label">400px</span></label>

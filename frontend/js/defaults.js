@@ -11,9 +11,12 @@
     font: "sourceHan",
     agingLevel: 42,
 
+    sealFormat: "standard",
+
     // 基础设置
     title: "",
     subtitle: "村民委员会",
+    serial: "1306268804527",
 
     // 高级设置（默认参数）
     titleSize: 50,
@@ -21,6 +24,9 @@
     titleAngle: 220,
     subtitleSize: 40,
     subtitlePos: 78,
+    serialSize: 18,
+    serialPos: 140,
+    serialAngle: 225,
     starSize: 100,
     starPos: 0,
     borderSize: 12,
@@ -30,6 +36,8 @@
     titleScaleY: 1,
     subtitleScaleX: 0.8,
     subtitleScaleY: 1,
+    serialScaleX: 1,
+    serialScaleY: 1,
   };
 
   var COLOR_PRESETS = [
