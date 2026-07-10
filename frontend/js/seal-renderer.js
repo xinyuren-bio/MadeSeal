@@ -129,18 +129,21 @@
   }
 
   /**
-   * 根据 0-100 滑块值计算做旧参数
+   * 根据 0-100 滑块值计算做旧参数（高值区间非线性增强）
    */
   function getAgingParams(level) {
     if (!level || level <= 0) return null;
     var t = Math.min(100, Math.max(0, level)) / 100;
+    var t2 = t * t;
     return {
-      hole: t * 0.28,
-      fade: t * 0.16,
-      speckle: t * 0.06,
-      fadeMin: 1.0 - t * 0.45,
-      fadeMax: 1.0 - t * 0.15,
-      speckleBlend: t * 0.2,
+      hole: t * 0.48 + t2 * 0.22,
+      fade: t * 0.22 + t2 * 0.12,
+      speckle: t * 0.12 + t2 * 0.08,
+      fadeMin: 1.0 - t * 0.55 - t2 * 0.2,
+      fadeMax: 1.0 - t * 0.25 - t2 * 0.15,
+      speckleBlend: t * 0.4 + t2 * 0.2,
+      micro: t * 0.15 + t2 * 0.1,
+      passes: t >= 0.4 ? 2 : 1,
     };
   }
 
@@ -154,43 +157,66 @@
     var ctx = canvas.getContext("2d");
     var w = canvas.width;
     var h = canvas.height;
-    var imgData = ctx.getImageData(0, 0, w, h);
-    var data = imgData.data;
-    var seed = 42;
 
-    function rand() {
-      seed = (seed * 16807) % 2147483647;
-      return seed / 2147483647;
+    for (var pass = 0; pass < p.passes; pass++) {
+      var imgData = ctx.getImageData(0, 0, w, h);
+      var data = imgData.data;
+      var seed = 42 + pass * 9973;
+      var intensity = pass === 0 ? 1 : 0.55;
+
+      function rand() {
+        seed = (seed * 16807) % 2147483647;
+        return seed / 2147483647;
+      }
+
+      for (var i = 0; i < data.length; i += 4) {
+        if (data[i + 3] === 0) continue;
+        var r = rand();
+
+        // 缺墨透明缺口
+        if (r < p.hole * intensity) {
+          data[i + 3] = 0;
+          continue;
+        }
+
+        // 半透明淡化 + 印泥深浅不均
+        if (r < (p.hole + p.fade) * intensity) {
+          var fade = p.fadeMin + rand() * (p.fadeMax - p.fadeMin);
+          data[i + 3] = Math.floor(data[i + 3] * fade);
+          if (rand() < 0.45) {
+            var ink = 0.55 + rand() * 0.35;
+            data[i] = Math.floor(data[i] * ink);
+            data[i + 1] = Math.floor(data[i + 1] * ink);
+            data[i + 2] = Math.floor(data[i + 2] * ink);
+          }
+          continue;
+        }
+
+        // 白色磨损噪点
+        if (r < (p.hole + p.fade + p.speckle) * intensity) {
+          var blend = p.speckleBlend * (0.4 + rand() * 0.6);
+          data[i] = Math.floor(data[i] * (1 - blend) + 255 * blend);
+          data[i + 1] = Math.floor(data[i + 1] * (1 - blend) + 235 * blend);
+          data[i + 2] = Math.floor(data[i + 2] * (1 - blend) + 235 * blend);
+          data[i + 3] = Math.floor(data[i + 3] * (0.5 + rand() * 0.4));
+          continue;
+        }
+
+        // 细微颗粒（第二遍叠加）
+        if (pass > 0 && r < (p.hole + p.fade + p.speckle + p.micro) * intensity) {
+          if (rand() < 0.5) {
+            data[i + 3] = Math.floor(data[i + 3] * (0.2 + rand() * 0.5));
+          } else {
+            var mb = 0.15 + rand() * 0.25;
+            data[i] = Math.floor(data[i] * (1 - mb) + 255 * mb);
+            data[i + 1] = Math.floor(data[i + 1] * (1 - mb) + 240 * mb);
+            data[i + 2] = Math.floor(data[i + 2] * (1 - mb) + 240 * mb);
+          }
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
     }
-
-    for (var i = 0; i < data.length; i += 4) {
-      if (data[i + 3] === 0) continue;
-      var r = rand();
-
-      // 随机透明缺口（缺墨）
-      if (r < p.hole) {
-        data[i + 3] = 0;
-        continue;
-      }
-
-      // 半透明淡化（保留更多红色，避免颜色过浅）
-      if (r < p.hole + p.fade) {
-        var fade = p.fadeMin + rand() * (p.fadeMax - p.fadeMin);
-        data[i + 3] = Math.floor(data[i + 3] * fade);
-        continue;
-      }
-
-      // 轻微白色噪点（降低混合比例，避免泛红变白）
-      if (r < p.hole + p.fade + p.speckle) {
-        var blend = p.speckleBlend * rand();
-        data[i] = Math.floor(data[i] * (1 - blend) + 255 * blend);
-        data[i + 1] = Math.floor(data[i + 1] * (1 - blend) + 240 * blend);
-        data[i + 2] = Math.floor(data[i + 2] * (1 - blend) + 240 * blend);
-        data[i + 3] = Math.floor(data[i + 3] * (0.75 + rand() * 0.25));
-      }
-    }
-
-    ctx.putImageData(imgData, 0, 0);
   }
 
   /**
