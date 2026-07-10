@@ -29,12 +29,18 @@
     var subtitleGroup = document.getElementById("subtitle-group");
     var subtitleAdvanced = document.getElementById("subtitle-advanced-group");
     var subtitleOther = document.getElementById("subtitle-other-group");
+    var serialGroup = document.getElementById("serial-group");
+    var serialAdvanced = document.getElementById("serial-advanced-group");
+    var serialOther = document.getElementById("serial-other-group");
     var titleLabel = document.getElementById("title-label");
     var titleInput = document.getElementById("title");
 
     if (subtitleGroup) subtitleGroup.classList.toggle("hidden", isVillage);
     if (subtitleAdvanced) subtitleAdvanced.classList.toggle("hidden", isVillage);
     if (subtitleOther) subtitleOther.classList.toggle("hidden", isVillage);
+    if (serialGroup) serialGroup.classList.toggle("hidden", !isVillage);
+    if (serialAdvanced) serialAdvanced.classList.toggle("hidden", !isVillage);
+    if (serialOther) serialOther.classList.toggle("hidden", !isVillage);
 
     if (titleLabel) {
       titleLabel.textContent = isVillage ? "标题（自动追加村民委员会）" : "标题";

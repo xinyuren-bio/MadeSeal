@@ -300,21 +300,23 @@
       weight
     );
 
-    // 编码（下弧，位置与角度随标题自动联动）
-    drawArcText(
-      ctx,
-      cfg.serial,
-      cx, cy,
-      serialLayout.serialPos * s,
-      90,
-      serialLayout.serialAngle,
-      (cfg.serialSize || 18) * s,
-      color,
-      cfg.serialScaleX,
-      cfg.serialScaleY,
-      font,
-      weight
-    );
+    // 编码（下弧，仅格式二）
+    if (cfg.sealFormat === "village") {
+      drawArcText(
+        ctx,
+        cfg.serial,
+        cx, cy,
+        serialLayout.serialPos * s,
+        90,
+        serialLayout.serialAngle,
+        (cfg.serialSize || 18) * s,
+        color,
+        cfg.serialScaleX,
+        cfg.serialScaleY,
+        font,
+        weight
+      );
+    }
 
     // 五角星
     var starR = ((cfg.starSize || 100) * s) / 2;
