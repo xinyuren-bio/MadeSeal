@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鑫泽农场印章制作</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600&display=swap" rel="stylesheet">
+</head>
+<body class="page-editor">
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <span class="site-title">鑫泽农场印章制作</span>
+  </div>
+</header>
+
+<main class="editor-main">
+  <!-- 预览区 -->
+  <section class="preview-section">
+    <div class="preview-canvas-wrap">
+      <canvas id="preview-canvas"></canvas>
+    </div>
+    <div class="color-panel">
+      <input type="text" id="color-hex" class="color-hex-input" value="#bb1918" maxlength="7">
+      <div class="color-swatches" id="color-swatches"></div>
+    </div>
+  </section>
+
+  <!-- 设置标签页 -->
+  <nav class="tab-nav" id="tab-nav">
+    <button type="button" class="tab-btn active" data-tab="basic">基础设置</button>
+    <button type="button" class="tab-btn" data-tab="advanced">高级设置</button>
+    <button type="button" class="tab-btn" data-tab="other">其他设置</button>
+  </nav>
+
+  <!-- 基础设置 -->
+  <section class="tab-panel active" id="tab-basic">
+    <div class="form-group">
+      <label for="title">标题</label>
+      <input type="text" id="title" maxlength="30">
+    </div>
+    <div class="form-group">
+      <label for="subtitle">副标题</label>
+      <input type="text" id="subtitle" maxlength="12">
+    </div>
+    <div class="form-group">
+      <label for="font">字体</label>
+      <select id="font">
+        <option value="sourceHan">思源宋体-中粗</option>
+        <option value="system">系统-默认</option>
+        <option value="heiti">黑体</option>
+        <option value="kaiti">楷体</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="aging">做旧|老化</label>
+      <select id="aging">
+        <option value="none">无</option>
+        <option value="light">轻度</option>
+        <option value="medium">中度</option>
+        <option value="heavy">重度</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- 高级设置 -->
+  <section class="tab-panel" id="tab-advanced">
+    <div class="slider-group">
+      <h3>标题</h3>
+      <div class="slider-row"><label>大小</label><input type="range" id="titleSize" min="10" max="70" value="50"><span class="slider-val" id="titleSize-val">50</span></div>
+      <div class="slider-row"><label>位置</label><input type="range" id="titlePos" min="80" max="180" value="150"><span class="slider-val" id="titlePos-val">150</span></div>
+      <div class="slider-row"><label>角度</label><input type="range" id="titleAngle" min="120" max="270" value="220"><span class="slider-val" id="titleAngle-val">220</span></div>
+    </div>
+    <div class="slider-group">
+      <h3>副标题</h3>
+      <div class="slider-row"><label>大小</label><input type="range" id="subtitleSize" min="10" max="60" value="40"><span class="slider-val" id="subtitleSize-val">40</span></div>
+      <div class="slider-row"><label>位置</label><input type="range" id="subtitlePos" min="20" max="120" value="78"><span class="slider-val" id="subtitlePos-val">78</span></div>
+    </div>
+    <div class="slider-group">
+      <h3>五角星</h3>
+      <div class="slider-row"><label>大小</label><input type="range" id="starSize" min="20" max="140" value="100"><span class="slider-val" id="starSize-val">100</span></div>
+      <div class="slider-row"><label>位置</label><input type="range" id="starPos" min="-60" max="60" value="0"><span class="slider-val" id="starPos-val">0</span></div>
+    </div>
+    <div class="slider-group">
+      <h3>外边框</h3>
+      <div class="slider-row"><label>大小</label><input type="range" id="borderSize" min="2" max="20" value="8"><span class="slider-val" id="borderSize-val">8</span></div>
+    </div>
+  </section>
+
+  <!-- 其他设置 -->
+  <section class="tab-panel" id="tab-other">
+    <div class="slider-group">
+      <h3>标题</h3>
+      <div class="slider-row"><label>字宽</label><input type="range" id="titleScaleX" min="0.3" max="2" step="0.1" value="0.8"><span class="slider-val" id="titleScaleX-val">0.8</span></div>
+      <div class="slider-row"><label>字高</label><input type="range" id="titleScaleY" min="0.3" max="2" step="0.1" value="1"><span class="slider-val" id="titleScaleY-val">1</span></div>
+    </div>
+    <div class="slider-group">
+      <h3>副标题</h3>
+      <div class="slider-row"><label>字宽</label><input type="range" id="subtitleScaleX" min="0.3" max="2" step="0.1" value="0.8"><span class="slider-val" id="subtitleScaleX-val">0.8</span></div>
+      <div class="slider-row"><label>字高</label><input type="range" id="subtitleScaleY" min="0.3" max="2" step="0.1" value="1"><span class="slider-val" id="subtitleScaleY-val">1</span></div>
+    </div>
+    <div class="form-group">
+      <label for="output-size">输出尺寸 <span id="size-label">400px</span></label>
+      <input type="range" id="output-size" min="200" max="800" value="400" step="10">
+    </div>
+  </section>
+
+  <p class="disclaimer-text">
+    免责声明：本工具生成的印章图片没有法律效力，仅供个人学习和内部交流使用。
+  </p>
+</main>
+
+<!-- 下载按钮 -->
+<button type="button" class="btn-download-fixed" id="btn-download">下载</button>
+
+<script src="/js/defaults.js"></script>
+<script src="/js/seal-renderer.js"></script>
+<script src="/js/storage.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
