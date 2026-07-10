@@ -240,7 +240,7 @@
   function getSerialLayout(cfg) {
     var titlePos = cfg.titlePos || 150;
     var titleAngle = cfg.titleAngle || 220;
-    var offset = cfg.serialOffset != null ? cfg.serialOffset : -8;
+    var offset = cfg.serialOffset != null ? cfg.serialOffset : 10;
     var arcTitle = getArcTitle(cfg);
     var titleLen = Math.max(arcTitle.length, 1);
     var serialLen = Math.max((cfg.serial || "").trim().length, 1);
