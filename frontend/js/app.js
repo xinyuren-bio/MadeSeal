@@ -12,7 +12,7 @@
     "sealFormat", "title", "subtitle", "serial", "font", "agingLevel",
     "titleSize", "titlePos", "titleAngle",
     "subtitleSize", "subtitlePos",
-    "serialSize", "serialPos", "serialAngle",
+    "serialSize", "serialOffset", "serialAngle",
     "starSize", "starPos", "borderSize",
     "titleScaleX", "titleScaleY",
     "subtitleScaleX", "subtitleScaleY",

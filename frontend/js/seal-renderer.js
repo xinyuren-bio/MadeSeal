@@ -235,6 +235,30 @@
   }
 
   /**
+   * 根据标题位置与字数自动计算编码下弧参数
+   */
+  function getSerialLayout(cfg) {
+    var titlePos = cfg.titlePos || 150;
+    var titleAngle = cfg.titleAngle || 220;
+    var offset = cfg.serialOffset != null ? cfg.serialOffset : -8;
+    var arcTitle = getArcTitle(cfg);
+    var titleLen = Math.max(arcTitle.length, 1);
+    var serialLen = Math.max((cfg.serial || "").trim().length, 1);
+
+    // 下弧半径跟随标题位置，通过偏移量控制内外间距
+    var serialPos = Math.max(75, Math.min(175, titlePos + offset));
+
+    // 按编码字数紧缩弧度，并以标题角度为上限，避免左右与上弧重叠
+    var byChars = serialLen * 10 + 35;
+    var byTitle = titleAngle * (serialLen / titleLen) * 0.82;
+    var maxAngle = cfg.serialAngle || 200;
+    var serialAngle = Math.min(maxAngle, byChars, byTitle, titleAngle * 0.82);
+    serialAngle = Math.max(90, serialAngle);
+
+    return { serialPos: serialPos, serialAngle: serialAngle };
+  }
+
+  /**
    * 绘制圆形公章
    */
   function drawCircleSeal(ctx, size, cfg) {
@@ -247,6 +271,9 @@
     var borderW = (cfg.borderSize || 12) * s;
     var outerR = size / 2 - borderW * 1.2;
     var arcTitle = getArcTitle(cfg);
+    var titlePos = (cfg.titlePos || 150) * s;
+    var titleAngle = cfg.titleAngle || 220;
+    var serialLayout = getSerialLayout(cfg);
 
     ctx.clearRect(0, 0, size, size);
 
@@ -262,9 +289,9 @@
       ctx,
       arcTitle,
       cx, cy,
-      (cfg.titlePos || 150) * s,
+      titlePos,
       -90,
-      cfg.titleAngle || 220,
+      titleAngle,
       (cfg.titleSize || 50) * s,
       color,
       cfg.titleScaleX,
@@ -273,14 +300,14 @@
       weight
     );
 
-    // 编码（下弧）
+    // 编码（下弧，位置与角度随标题自动联动）
     drawArcText(
       ctx,
       cfg.serial,
       cx, cy,
-      (cfg.serialPos || 140) * s,
+      serialLayout.serialPos * s,
       90,
-      cfg.serialAngle || 225,
+      serialLayout.serialAngle,
       (cfg.serialSize || 18) * s,
       color,
       cfg.serialScaleX,

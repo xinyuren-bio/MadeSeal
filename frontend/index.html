@@ -89,8 +89,10 @@
     <div class="slider-group">
       <h3>编码</h3>
       <div class="slider-row"><label>大小</label><input type="range" id="serialSize" min="8" max="40" value="18"><span class="slider-val" id="serialSize-val">18</span></div>
-      <div class="slider-row"><label>位置</label><input type="range" id="serialPos" min="80" max="180" value="140"><span class="slider-val" id="serialPos-val">140</span></div>
-      <div class="slider-row"><label>角度</label><input type="range" id="serialAngle" min="120" max="270" value="225"><span class="slider-val" id="serialAngle-val">225</span></div>
+      <div class="slider-row"><label>间距</label><input type="range" id="serialOffset" min="-35" max="10" value="-8"><span class="slider-val" id="serialOffset-val">-8</span></div>
+      <p class="form-hint">间距相对标题位置自动联动，负值更靠内</p>
+      <div class="slider-row"><label>角度</label><input type="range" id="serialAngle" min="90" max="240" value="200"><span class="slider-val" id="serialAngle-val">200</span></div>
+      <p class="form-hint">实际角度按字数自动收紧，不超过此上限</p>
     </div>
     <div class="slider-group">
       <h3>五角星</h3>
