@@ -12,64 +12,76 @@ uvicorn main:app --host 0.0.0.0 --port 8088 --reload
 
 浏览器访问 http://localhost:8088
 
-## 服务器部署（供其他电脑访问）
-
-### 方式一：一键脚本（推荐）
-
-将 `seal` 文件夹上传到服务器后执行：
+## 推送到 GitHub
 
 ```bash
+# 在 GitHub 新建空仓库：xinyuren-bio/seal（不要勾选 README）
 cd seal
+git remote add origin git@github.com:xinyuren-bio/seal.git
+git push -u origin main
+```
+
+## 阿里云服务器部署
+
+以你的 ECS 为例：
+- 公网 IP：`8.219.168.5`
+- 系统：Alibaba Cloud Linux 3
+- 建议端口：`8088`
+
+### 1. 登录服务器
+
+```bash
+ssh root@8.219.168.5
+```
+
+### 2. 安装依赖
+
+```bash
+yum install -y git python3 python3-pip
+```
+
+### 3. 拉取代码
+
+```bash
+cd ~
+git clone git@github.com:xinyuren-bio/seal.git
+cd seal
+```
+
+### 4. 一键部署
+
+```bash
 chmod +x deploy/deploy.sh
-bash deploy/deploy.sh /home/renxinyu/seal 8088
+bash deploy/deploy.sh ~/seal 8088
 ```
 
-脚本会自动：
-1. 安装 Python 依赖
-2. 注册 systemd 服务 `xinzhe-seal`
-3. 绑定 `0.0.0.0:8088`，允许外网访问
+### 5. 阿里云安全组放行端口
 
-### 方式二：手动启动
+在阿里云控制台 → 安全组 → 入方向，添加规则：
+- 协议：TCP
+- 端口：8088
+- 授权对象：0.0.0.0/0（或你的办公网 IP）
+
+### 6. 其他电脑访问
+
+```
+http://8.219.168.5:8088
+```
+
+### 常用命令
 
 ```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-SEAL_PORT=8088 uvicorn main:app --host 0.0.0.0 --port 8088
-```
+# 查看服务状态
+sudo systemctl status xinzhe-seal
 
-### 防火墙
+# 重启服务
+sudo systemctl restart xinzhe-seal
 
-确保服务器安全组/防火墙放行端口（以 8088 为例）：
+# 查看日志
+sudo journalctl -u xinzhe-seal -f
 
-```bash
-# 腾讯云/阿里云：在安全组入站规则中添加 TCP 8088
-# ufw 示例：
-sudo ufw allow 8088/tcp
-```
-
-### 外网访问地址
-
-```
-http://你的服务器公网IP:8088
-```
-
-若 WebMd 与印章站部署在同一台机器，WebMd 用 8000，印章站用 8088，互不冲突。
-
-### Nginx 反向代理（可选，绑定域名）
-
-```nginx
-server {
-    listen 80;
-    server_name seal.你的域名.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:8088;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
+# 更新代码后重新部署
+cd ~/seal && git pull && sudo systemctl restart xinzhe-seal
 ```
 
 ## 环境变量
