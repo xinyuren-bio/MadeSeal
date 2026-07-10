@@ -9,10 +9,10 @@
     size: 400,
     color: "#bb1918",
     font: "sourceHan",
-    aging: "medium",
+    agingLevel: 74,
 
     // 基础设置
-    title: "太原县腰站镇沙庄村",
+    title: "",
     subtitle: "村民委员会",
 
     // 高级设置（默认参数）

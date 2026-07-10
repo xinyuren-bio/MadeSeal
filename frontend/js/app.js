@@ -9,7 +9,7 @@
 
   // 所有可绑定字段 ID 列表
   var FIELD_IDS = [
-    "title", "subtitle", "font", "aging",
+    "title", "subtitle", "font", "agingLevel",
     "titleSize", "titlePos", "titleAngle",
     "subtitleSize", "subtitlePos",
     "starSize", "starPos", "borderSize",
@@ -74,6 +74,10 @@
     if (colorHex) colorHex.value = cfg.color;
     var sizeLabel = document.getElementById("size-label");
     if (sizeLabel) sizeLabel.textContent = cfg.size + "px";
+    var agingLabel = document.getElementById("agingLevel-label");
+    var agingHint = document.getElementById("agingLevel-hint");
+    if (agingLabel) agingLabel.textContent = cfg.agingLevel;
+    if (agingHint) agingHint.textContent = agingHintText(cfg.agingLevel || 0);
   }
 
   /**
@@ -127,6 +131,17 @@
   }
 
   /**
+   * 做旧程度文字提示
+   */
+  function agingHintText(v) {
+    if (v <= 0) return "无做旧";
+    if (v <= 25) return "轻度做旧";
+    if (v <= 50) return "中度做旧";
+    if (v <= 75) return "较重做旧";
+    return "重度做旧";
+  }
+
+  /**
    * 绑定所有输入事件
    */
   function bindEvents() {
@@ -139,6 +154,12 @@
         if (id === "output-size") {
           var sizeLabel = document.getElementById("size-label");
           if (sizeLabel) sizeLabel.textContent = el.value + "px";
+        }
+        if (id === "agingLevel") {
+          var agingLabel = document.getElementById("agingLevel-label");
+          var agingHint = document.getElementById("agingLevel-hint");
+          if (agingLabel) agingLabel.textContent = el.value;
+          if (agingHint) agingHint.textContent = agingHintText(parseInt(el.value, 10));
         }
         updatePreview();
       });

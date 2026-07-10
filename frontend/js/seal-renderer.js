@@ -129,20 +129,26 @@
   }
 
   /**
-   * 做旧老化参数：轻度偏淡、中度均衡、重度磨损但保持色泽
+   * 根据 0-100 滑块值计算做旧参数
    */
-  var AGING_LEVELS = {
-    light: { hole: 0.06, fade: 0.05, speckle: 0.02, fadeMin: 0.75, fadeMax: 0.95, speckleBlend: 0.15 },
-    medium: { hole: 0.18, fade: 0.12, speckle: 0.05, fadeMin: 0.45, fadeMax: 0.75, speckleBlend: 0.25 },
-    heavy: { hole: 0.28, fade: 0.16, speckle: 0.06, fadeMin: 0.55, fadeMax: 0.85, speckleBlend: 0.2 },
-  };
+  function getAgingParams(level) {
+    if (!level || level <= 0) return null;
+    var t = Math.min(100, Math.max(0, level)) / 100;
+    return {
+      hole: t * 0.28,
+      fade: t * 0.16,
+      speckle: t * 0.06,
+      fadeMin: 1.0 - t * 0.45,
+      fadeMax: 1.0 - t * 0.15,
+      speckleBlend: t * 0.2,
+    };
+  }
 
   /**
    * 做旧老化效果（在完整画布像素上操作）
    */
   function applyAging(canvas, level) {
-    if (!level || level === "none") return;
-    var p = AGING_LEVELS[level];
+    var p = getAgingParams(level);
     if (!p) return;
 
     var ctx = canvas.getContext("2d");
@@ -252,7 +258,7 @@
     var size = cfg.size || BASE_SIZE;
     var c = createCanvas(size);
     drawCircleSeal(c.ctx, size, cfg);
-    applyAging(c.canvas, cfg.aging);
+    applyAging(c.canvas, cfg.agingLevel);
     return c.canvas;
   }
 

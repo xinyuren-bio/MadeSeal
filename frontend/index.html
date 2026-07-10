@@ -40,7 +40,7 @@
   <section class="tab-panel active" id="tab-basic">
     <div class="form-group">
       <label for="title">标题</label>
-      <input type="text" id="title" maxlength="30">
+      <input type="text" id="title" maxlength="30" placeholder="请输入上弧标题">
     </div>
     <div class="form-group">
       <label for="subtitle">副标题</label>
@@ -56,13 +56,9 @@
       </select>
     </div>
     <div class="form-group">
-      <label for="aging">做旧|老化</label>
-      <select id="aging">
-        <option value="none">无</option>
-        <option value="light">轻度</option>
-        <option value="medium">中度</option>
-        <option value="heavy">重度</option>
-      </select>
+      <label for="agingLevel">做旧|老化 <span id="agingLevel-label">74</span></label>
+      <input type="range" id="agingLevel" min="0" max="100" value="74" step="1">
+      <p class="form-hint" id="agingLevel-hint">较重做旧</p>
     </div>
   </section>
 

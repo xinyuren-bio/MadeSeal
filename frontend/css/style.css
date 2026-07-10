@@ -188,6 +188,12 @@ body {
   background: #fff;
 }
 
+.form-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
 .form-group input[type="range"] {
   width: 100%;
   accent-color: #e53935;
