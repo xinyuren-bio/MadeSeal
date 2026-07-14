@@ -9,7 +9,7 @@
 
   // 所有可绑定字段 ID 列表
   var FIELD_IDS = [
-    "sealFormat", "title", "subtitle", "serial", "font", "agingLevel",
+    "sealFormat", "title", "subtitle", "serial", "font", "fontBold", "agingLevel",
     "titleSize", "titlePos", "titleAngle",
     "subtitleSize", "subtitlePos",
     "serialSize", "serialOffset", "serialAngle",
@@ -112,6 +112,8 @@
     var agingHint = document.getElementById("agingLevel-hint");
     if (agingLabel) agingLabel.textContent = cfg.agingLevel;
     if (agingHint) agingHint.textContent = agingHintText(cfg.agingLevel || 0);
+    var boldLabel = document.getElementById("fontBold-label");
+    if (boldLabel) boldLabel.textContent = cfg.fontBold;
     updateFormatUI();
   }
 
@@ -279,6 +281,10 @@
           var agingHint = document.getElementById("agingLevel-hint");
           if (agingLabel) agingLabel.textContent = el.value;
           if (agingHint) agingHint.textContent = agingHintText(parseInt(el.value, 10));
+        }
+        if (id === "fontBold") {
+          var boldLabel = document.getElementById("fontBold-label");
+          if (boldLabel) boldLabel.textContent = el.value;
         }
         if (id === "sealFormat") {
           cfg.sealFormat = el.value;

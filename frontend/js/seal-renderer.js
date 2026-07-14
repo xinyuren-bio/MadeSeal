@@ -11,13 +11,6 @@
     kaiti: '"KaiTi", "STKaiti", "Kaiti SC", serif',
   };
 
-  var FONT_WEIGHT_MAP = {
-    sourceHan: "600",
-    system: "bold",
-    heiti: "bold",
-    kaiti: "bold",
-  };
-
   var BASE_SIZE = 400;
 
   /**
@@ -43,10 +36,30 @@
   }
 
   /**
-   * 获取字体粗细
+   * 将加粗滑块(0-100)映射为 CSS font-weight
    */
   function fontWeight(cfg) {
-    return FONT_WEIGHT_MAP[cfg.font] || "bold";
+    var bold = cfg.fontBold != null ? Number(cfg.fontBold) : 70;
+    bold = Math.min(100, Math.max(0, bold));
+    // 0→400，50→700，100→900
+    var w = 400 + Math.round((bold / 100) * 500);
+    if (w > 800) w = 900;
+    else if (w > 650) w = 700;
+    else if (w > 500) w = 600;
+    else if (w > 350) w = 500;
+    else w = 400;
+    return String(w);
+  }
+
+  /**
+   * 额外描边加粗宽度（系统字体字重不够时补充笔画厚度）
+   */
+  function boldStrokeWidth(cfg, fontSize) {
+    var bold = cfg.fontBold != null ? Number(cfg.fontBold) : 70;
+    bold = Math.min(100, Math.max(0, bold));
+    if (bold <= 30) return 0;
+    // 30 以上开始描边加粗，最高约字号的 12%
+    return ((bold - 30) / 70) * fontSize * 0.12;
   }
 
   /**
@@ -57,9 +70,23 @@
   }
 
   /**
+   * 按当前加粗设置绘制文字（填充 + 可选描边）
+   */
+  function paintGlyph(ctx, text, x, y, color, strokeW) {
+    if (strokeW > 0) {
+      ctx.lineWidth = strokeW;
+      ctx.strokeStyle = color;
+      ctx.lineJoin = "round";
+      ctx.miterLimit = 2;
+      ctx.strokeText(text, x, y);
+    }
+    ctx.fillText(text, x, y);
+  }
+
+  /**
    * 沿圆弧绘制文字，支持字宽字高缩放
    */
-  function drawArcText(ctx, text, cx, cy, radius, centerDeg, spanDeg, fontSize, color, scaleX, scaleY, font, weight) {
+  function drawArcText(ctx, text, cx, cy, radius, centerDeg, spanDeg, fontSize, color, scaleX, scaleY, font, weight, strokeW) {
     if (!text) return;
     var chars = text.split("");
     var n = chars.length;
@@ -82,8 +109,8 @@
       ctx.translate(x, y);
       ctx.rotate(angle + Math.PI / 2);
       ctx.scale(scaleX || 1, scaleY || 1);
-      ctx.font = (weight || "bold") + " " + fontSize + "px " + font;
-      ctx.fillText(chars[i], 0, 0);
+      ctx.font = (weight || "700") + " " + fontSize + "px " + font;
+      paintGlyph(ctx, chars[i], 0, 0, color, strokeW || 0);
       ctx.restore();
     }
     ctx.restore();
@@ -92,7 +119,7 @@
   /**
    * 绘制横排文字
    */
-  function drawFlatText(ctx, text, cx, y, fontSize, color, scaleX, scaleY, font, weight) {
+  function drawFlatText(ctx, text, cx, y, fontSize, color, scaleX, scaleY, font, weight, strokeW) {
     if (!text) return;
     ctx.save();
     ctx.fillStyle = color;
@@ -100,8 +127,8 @@
     ctx.textBaseline = "middle";
     ctx.translate(cx, y);
     ctx.scale(scaleX || 1, scaleY || 1);
-    ctx.font = (weight || "bold") + " " + fontSize + "px " + font;
-    ctx.fillText(text, 0, 0);
+    ctx.font = (weight || "700") + " " + fontSize + "px " + font;
+    paintGlyph(ctx, text, 0, 0, color, strokeW || 0);
     ctx.restore();
   }
 
@@ -274,6 +301,9 @@
     var titlePos = (cfg.titlePos || 150) * s;
     var titleAngle = cfg.titleAngle || 220;
     var serialLayout = getSerialLayout(cfg);
+    var titleFontSize = (cfg.titleSize || 50) * s;
+    var serialFontSize = (cfg.serialSize || 18) * s;
+    var subtitleFontSize = (cfg.subtitleSize || 40) * s;
 
     ctx.clearRect(0, 0, size, size);
 
@@ -292,12 +322,13 @@
       titlePos,
       -90,
       titleAngle,
-      (cfg.titleSize || 50) * s,
+      titleFontSize,
       color,
       cfg.titleScaleX,
       cfg.titleScaleY,
       font,
-      weight
+      weight,
+      boldStrokeWidth(cfg, titleFontSize)
     );
 
     // 编码（下弧，仅格式二）
@@ -309,12 +340,13 @@
         serialLayout.serialPos * s,
         90,
         serialLayout.serialAngle,
-        (cfg.serialSize || 18) * s,
+        serialFontSize,
         color,
         cfg.serialScaleX,
         cfg.serialScaleY,
         font,
-        weight
+        weight,
+        boldStrokeWidth(cfg, serialFontSize)
       );
     }
 
@@ -330,12 +362,13 @@
         cfg.subtitle,
         cx,
         cy + (cfg.subtitlePos || 78) * s,
-        (cfg.subtitleSize || 40) * s,
+        subtitleFontSize,
         color,
         cfg.subtitleScaleX,
         cfg.subtitleScaleY,
         font,
-        weight
+        weight,
+        boldStrokeWidth(cfg, subtitleFontSize)
       );
     }
   }

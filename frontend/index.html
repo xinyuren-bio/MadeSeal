@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>鑫泽农场印章制作</title>
+<title>钢蛋印章制作</title>
 <link rel="stylesheet" href="/css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 </head>
 <body class="page-editor">
 
 <header class="site-header">
   <div class="site-header-inner">
-    <span class="site-title">鑫泽农场印章制作</span>
+    <span class="site-title">钢蛋印章制作</span>
   </div>
 </header>
 
@@ -60,11 +60,16 @@
     <div class="form-group">
       <label for="font">字体</label>
       <select id="font">
-        <option value="sourceHan">思源宋体-中粗</option>
+        <option value="sourceHan">思源宋体</option>
         <option value="system">系统-默认</option>
         <option value="heiti">黑体</option>
         <option value="kaiti">楷体</option>
       </select>
+    </div>
+    <div class="form-group">
+      <label for="fontBold">加粗 <span id="fontBold-label">70</span></label>
+      <input type="range" id="fontBold" min="0" max="100" value="70" step="1">
+      <p class="form-hint">数值越大文字越粗，适合公章观感</p>
     </div>
     <div class="form-group">
       <label for="agingLevel">做旧|老化 <span id="agingLevel-label">42</span></label>
@@ -131,11 +136,6 @@
   <p class="disclaimer-text">
     免责声明：本工具生成的印章图片没有法律效力，仅供个人学习和内部交流使用。
   </p>
-  <footer class="site-credits">
-    <p>董事长：任金强</p>
-    <p>总经理：阎娜</p>
-    <p>跟班：任鑫宇，滕心如，张锦程，任钢蛋</p>
-  </footer>
 </main>
 
 <!-- 下载按钮 -->
