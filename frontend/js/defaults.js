@@ -11,7 +11,7 @@
     colorDepth: 0,
     font: "sourceHan",
     fontBold: 48,
-    agingLevel: 5,
+    agingLevel: 23,
 
     sealFormat: "standard",
 
