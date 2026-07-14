@@ -39,8 +39,8 @@
    * 解析 #RRGGBB 为 RGB
    */
   function parseHex(hex) {
-    var h = (hex || "#e60012").replace("#", "");
-    if (h.length !== 6) h = "e60012";
+    var h = (hex || "#b02022").replace("#", "");
+    if (h.length !== 6) h = "b02022";
     return {
       r: parseInt(h.slice(0, 2), 16),
       g: parseInt(h.slice(2, 4), 16),
@@ -60,27 +60,39 @@
   }
 
   /**
-   * 按加深滑块提纯并压暗颜色，偏正红印泥感（避免发褐/发粉）
+   * 按加深滑块贴近实物印泥红（取样约 #b02022），避免发粉或发褐
    */
   function deepenColor(hex, depth) {
-    var d = Math.min(100, Math.max(0, depth != null ? Number(depth) : 55)) / 100;
+    var d = Math.min(100, Math.max(0, depth != null ? Number(depth) : 45)) / 100;
     var rgb = parseHex(hex);
-    var r = rgb.r;
-    var g = rgb.g;
-    var b = rgb.b;
 
-    // 压缩绿蓝，提纯偏红；深度越高越接近正红
-    var purify = 0.45 + d * 0.5;
-    g = g * (1 - purify);
-    b = b * (1 - purify);
-    // 红通道保持高亮，略向印泥标准红靠拢
-    var inkR = 230 - d * 70;
-    r = r * (1 - d * 0.35) + inkR * (0.25 + d * 0.75);
-    r = Math.max(r, 150 - d * 30);
+    // 实物印泥锚点：实色区 #b02022，更深区约 #8b1518
+    var midR = 176;
+    var midG = 32;
+    var midB = 34;
+    var deepR = 139;
+    var deepG = 21;
+    var deepB = 24;
 
-    // 整体轻度压暗，但避免压成褐黑
-    var shade = 1 - d * 0.18;
-    return toHex(r * shade, g * shade, b * shade);
+    var targetR;
+    var targetG;
+    var targetB;
+    if (d <= 0.45) {
+      var t = d / 0.45;
+      targetR = rgb.r + (midR - rgb.r) * t;
+      targetG = rgb.g + (midG - rgb.g) * t;
+      targetB = rgb.b + (midB - rgb.b) * t;
+    } else {
+      var u = (d - 0.45) / 0.55;
+      targetR = midR + (deepR - midR) * u;
+      targetG = midG + (deepG - midG) * u;
+      targetB = midB + (deepB - midB) * u;
+    }
+
+    // 轻度提纯：压绿蓝，保持朱砂红感
+    targetG *= 0.92;
+    targetB *= 0.9;
+    return toHex(targetR, targetG, targetB);
   }
 
   /**
@@ -341,7 +353,7 @@
     var s = scaleOf(cfg);
     var cx = size / 2;
     var cy = size / 2;
-    var color = deepenColor(cfg.color || "#e60012", cfg.colorDepth);
+    var color = deepenColor(cfg.color || "#b02022", cfg.colorDepth);
     var font = fontFamily(cfg);
     var weight = fontWeight(cfg);
     var borderW = (cfg.borderSize || 12) * s;

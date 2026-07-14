@@ -7,8 +7,8 @@
   var DEFAULT_CONFIG = {
     type: "circle",
     size: 400,
-    color: "#e60012",
-    colorDepth: 55,
+    color: "#b02022",
+    colorDepth: 45,
     font: "sourceHan",
     fontBold: 48,
     agingLevel: 42,
@@ -43,11 +43,11 @@
   };
 
   var COLOR_PRESETS = [
-    "#e60012",
+    "#b02022",
     "#c41e3a",
-    "#b71c1c",
+    "#e60012",
+    "#8b1518",
     "#f57c00",
-    "#ffab40",
     "#1565c0",
   ];
 
