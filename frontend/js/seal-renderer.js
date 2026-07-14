@@ -63,7 +63,7 @@
    * 按加深滑块贴近实物印泥红（取样约 #b02022），避免发粉或发褐
    */
   function deepenColor(hex, depth) {
-    var d = Math.min(100, Math.max(0, depth != null ? Number(depth) : 45)) / 100;
+    var d = Math.min(100, Math.max(0, depth != null ? Number(depth) : 0)) / 100;
     var rgb = parseHex(hex);
 
     // 实物印泥锚点：实色区 #b02022，更深区约 #8b1518

@@ -8,10 +8,10 @@
     type: "circle",
     size: 400,
     color: "#b02022",
-    colorDepth: 45,
+    colorDepth: 0,
     font: "sourceHan",
     fontBold: 48,
-    agingLevel: 42,
+    agingLevel: 5,
 
     sealFormat: "standard",
 
