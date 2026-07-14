@@ -217,25 +217,27 @@
 
   /**
    * 根据 0-100 滑块值计算做旧参数（高值区间非线性增强）
+   * 以硬挖空洞模拟缺墨，避免半透明把红色冲浅
    */
   function getAgingParams(level) {
     if (!level || level <= 0) return null;
     var t = Math.min(100, Math.max(0, level)) / 100;
     var t2 = t * t;
     return {
-      hole: t * 0.48 + t2 * 0.22,
-      fade: t * 0.16 + t2 * 0.1,
-      speckle: t * 0.12 + t2 * 0.08,
-      fadeMin: 1.0 - t * 0.35 - t2 * 0.15,
-      fadeMax: 1.0 - t * 0.12 - t2 * 0.1,
-      speckleBlend: t * 0.4 + t2 * 0.2,
-      micro: t * 0.15 + t2 * 0.1,
+      // 较大缺墨孔
+      hole: t * 0.28 + t2 * 0.2,
+      // 细密砂点孔（替代原先的半透明淡化）
+      grit: t * 0.22 + t2 * 0.16,
+      // 局部印泥略加深，制造深浅不均但颜色仍不发粉
+      darken: t * 0.1 + t2 * 0.08,
+      darkenMin: 0.72,
+      darkenMax: 0.92,
       passes: t >= 0.4 ? 2 : 1,
     };
   }
 
   /**
-   * 做旧老化效果（在完整画布像素上操作）
+   * 做旧老化：用透明挖空表现磨损，保留像素保持不透明原色
    */
   function applyAging(canvas, level) {
     var p = getAgingParams(level);
@@ -260,46 +262,26 @@
         if (data[i + 3] === 0) continue;
         var r = rand();
 
-        // 缺墨透明缺口
+        // 缺墨：直接挖空，露出纸色，不把红变浅
         if (r < p.hole * intensity) {
           data[i + 3] = 0;
           continue;
         }
 
-        // 半透明淡化 + 印泥深浅不均
-        if (r < (p.hole + p.fade) * intensity) {
-          var fade = p.fadeMin + rand() * (p.fadeMax - p.fadeMin);
-          data[i + 3] = Math.floor(data[i + 3] * fade);
-          if (rand() < 0.45) {
-            // 印泥深浅不均时仍保持偏正红，避免发褐
-            var ink = 0.7 + rand() * 0.3;
-            data[i] = Math.min(255, Math.floor(data[i] * ink + 8));
-            data[i + 1] = Math.floor(data[i + 1] * ink * 0.55);
-            data[i + 2] = Math.floor(data[i + 2] * ink * 0.55);
-          }
+        // 细砂点缺墨
+        if (r < (p.hole + p.grit) * intensity) {
+          data[i + 3] = 0;
           continue;
         }
 
-        // 白色磨损噪点
-        if (r < (p.hole + p.fade + p.speckle) * intensity) {
-          var blend = p.speckleBlend * (0.4 + rand() * 0.6);
-          data[i] = Math.floor(data[i] * (1 - blend) + 255 * blend);
-          data[i + 1] = Math.floor(data[i + 1] * (1 - blend) + 235 * blend);
-          data[i + 2] = Math.floor(data[i + 2] * (1 - blend) + 235 * blend);
-          data[i + 3] = Math.floor(data[i + 3] * (0.5 + rand() * 0.4));
-          continue;
-        }
-
-        // 细微颗粒（第二遍叠加）
-        if (pass > 0 && r < (p.hole + p.fade + p.speckle + p.micro) * intensity) {
-          if (rand() < 0.5) {
-            data[i + 3] = Math.floor(data[i + 3] * (0.2 + rand() * 0.5));
-          } else {
-            var mb = 0.15 + rand() * 0.25;
-            data[i] = Math.floor(data[i] * (1 - mb) + 255 * mb);
-            data[i + 1] = Math.floor(data[i + 1] * (1 - mb) + 240 * mb);
-            data[i + 2] = Math.floor(data[i + 2] * (1 - mb) + 240 * mb);
-          }
+        // 少量区域略加深（不降低透明度）
+        if (r < (p.hole + p.grit + p.darken) * intensity) {
+          var ink = p.darkenMin + rand() * (p.darkenMax - p.darkenMin);
+          data[i] = Math.max(0, Math.floor(data[i] * ink));
+          data[i + 1] = Math.max(0, Math.floor(data[i + 1] * ink * 0.85));
+          data[i + 2] = Math.max(0, Math.floor(data[i + 2] * ink * 0.85));
+          // 强制保持不透明，避免透白发粉
+          if (data[i + 3] > 0) data[i + 3] = 255;
         }
       }
 
