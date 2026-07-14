@@ -217,7 +217,7 @@
 
   /**
    * 根据 0-100 滑块值计算做旧参数（高值区间非线性增强）
-   * 以 2～3 像素雪花碎点硬挖空模拟缺墨，避免半透明把红色冲浅
+   * 以 4～5 像素雪花碎点硬挖空模拟缺墨，避免半透明把红色冲浅
    */
   function getAgingParams(level) {
     if (!level || level <= 0) return null;
@@ -235,7 +235,7 @@
   }
 
   /**
-   * 挖 2～3 像素的随机小簇，形成略大的雪花碎点
+   * 挖 4～5 像素的随机小簇，形成略大的雪花碎点
    */
   function punchFlake(data, w, h, cx, cy, rand) {
     var dirs = [
@@ -248,9 +248,13 @@
       [-1, 1],
       [1, -1],
       [-1, -1],
+      [2, 0],
+      [-2, 0],
+      [0, 2],
+      [0, -2],
     ];
-    // 随机取 2 或 3 个像素
-    var count = rand() < 0.55 ? 2 : 3;
+    // 随机取 4 或 5 个像素
+    var count = rand() < 0.55 ? 4 : 5;
     // 打乱方向顺序后取前 count 个
     for (var i = dirs.length - 1; i > 0; i--) {
       var j = Math.floor(rand() * (i + 1));
@@ -267,7 +271,7 @@
   }
 
   /**
-   * 做旧老化：2～3 像素雪花碎点挖空，保留像素保持不透明原色
+   * 做旧老化：4～5 像素雪花碎点挖空，保留像素保持不透明原色
    */
   function applyAging(canvas, level) {
     var p = getAgingParams(level);
