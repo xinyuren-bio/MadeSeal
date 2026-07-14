@@ -39,8 +39,8 @@
    * 解析 #RRGGBB 为 RGB
    */
   function parseHex(hex) {
-    var h = (hex || "#bb1918").replace("#", "");
-    if (h.length !== 6) h = "bb1918";
+    var h = (hex || "#e60012").replace("#", "");
+    if (h.length !== 6) h = "e60012";
     return {
       r: parseInt(h.slice(0, 2), 16),
       g: parseInt(h.slice(2, 4), 16),
@@ -60,21 +60,26 @@
   }
 
   /**
-   * 按加深滑块压暗颜色，并略提高饱和，贴近印泥深色
+   * 按加深滑块提纯并压暗颜色，偏正红印泥感（避免发褐/发粉）
    */
   function deepenColor(hex, depth) {
-    var d = Math.min(100, Math.max(0, depth != null ? Number(depth) : 40)) / 100;
-    if (d <= 0) return hex || "#bb1918";
+    var d = Math.min(100, Math.max(0, depth != null ? Number(depth) : 55)) / 100;
     var rgb = parseHex(hex);
-    // 向更深的印泥红 (#5c0a0a) 插值，同时整体压暗
-    var tr = 92;
-    var tg = 10;
-    var tb = 10;
-    var r = rgb.r * (1 - d) + tr * d;
-    var g = rgb.g * (1 - d) + tg * d;
-    var b = rgb.b * (1 - d) + tb * d;
-    // 再额外压暗亮度，高加深时更明显
-    var shade = 1 - d * 0.35;
+    var r = rgb.r;
+    var g = rgb.g;
+    var b = rgb.b;
+
+    // 压缩绿蓝，提纯偏红；深度越高越接近正红
+    var purify = 0.45 + d * 0.5;
+    g = g * (1 - purify);
+    b = b * (1 - purify);
+    // 红通道保持高亮，略向印泥标准红靠拢
+    var inkR = 230 - d * 70;
+    r = r * (1 - d * 0.35) + inkR * (0.25 + d * 0.75);
+    r = Math.max(r, 150 - d * 30);
+
+    // 整体轻度压暗，但避免压成褐黑
+    var shade = 1 - d * 0.18;
     return toHex(r * shade, g * shade, b * shade);
   }
 
@@ -207,10 +212,10 @@
     var t2 = t * t;
     return {
       hole: t * 0.48 + t2 * 0.22,
-      fade: t * 0.22 + t2 * 0.12,
+      fade: t * 0.16 + t2 * 0.1,
       speckle: t * 0.12 + t2 * 0.08,
-      fadeMin: 1.0 - t * 0.55 - t2 * 0.2,
-      fadeMax: 1.0 - t * 0.25 - t2 * 0.15,
+      fadeMin: 1.0 - t * 0.35 - t2 * 0.15,
+      fadeMax: 1.0 - t * 0.12 - t2 * 0.1,
       speckleBlend: t * 0.4 + t2 * 0.2,
       micro: t * 0.15 + t2 * 0.1,
       passes: t >= 0.4 ? 2 : 1,
@@ -254,10 +259,11 @@
           var fade = p.fadeMin + rand() * (p.fadeMax - p.fadeMin);
           data[i + 3] = Math.floor(data[i + 3] * fade);
           if (rand() < 0.45) {
-            var ink = 0.55 + rand() * 0.35;
-            data[i] = Math.floor(data[i] * ink);
-            data[i + 1] = Math.floor(data[i + 1] * ink);
-            data[i + 2] = Math.floor(data[i + 2] * ink);
+            // 印泥深浅不均时仍保持偏正红，避免发褐
+            var ink = 0.7 + rand() * 0.3;
+            data[i] = Math.min(255, Math.floor(data[i] * ink + 8));
+            data[i + 1] = Math.floor(data[i + 1] * ink * 0.55);
+            data[i + 2] = Math.floor(data[i + 2] * ink * 0.55);
           }
           continue;
         }
@@ -335,7 +341,7 @@
     var s = scaleOf(cfg);
     var cx = size / 2;
     var cy = size / 2;
-    var color = deepenColor(cfg.color || "#bb1918", cfg.colorDepth);
+    var color = deepenColor(cfg.color || "#e60012", cfg.colorDepth);
     var font = fontFamily(cfg);
     var weight = fontWeight(cfg);
     var borderW = (cfg.borderSize || 12) * s;
