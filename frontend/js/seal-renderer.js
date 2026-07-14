@@ -271,15 +271,17 @@
   }
 
   /**
-   * 挖约 10 像素的不规则中等缺墨点
+   * 挖指定像素数的不规则缺墨点（半径随点数扩大）
    */
   function punchSpot(data, w, h, cx, cy, count, rand) {
+    var span = count >= 16 ? 5 : 3;
+    var range = span * 2 + 1;
     var cleared = 0;
     var tries = 0;
-    while (cleared < count && tries < count * 12) {
+    while (cleared < count && tries < count * 16) {
       tries++;
-      var dx = Math.floor(rand() * 7) - 3;
-      var dy = Math.floor(rand() * 7) - 3;
+      var dx = Math.floor(rand() * range) - span;
+      var dy = Math.floor(rand() * range) - span;
       var x = cx + dx;
       var y = cy + dy;
       if (x < 0 || y < 0 || x >= w || y >= h) continue;
@@ -332,22 +334,31 @@
         }
       }
 
-      // 整章随机补 3～4 个约 10 像素的中等缺墨点（仅第一遍，避免翻倍）
+      // 整章随机补中等/较大缺墨点（仅第一遍，避免翻倍）
       if (pass === 0) {
-        var bigCount = rand() < 0.5 ? 3 : 4;
+        var midCount = rand() < 0.5 ? 3 : 4;
+        var bigCount = rand() < 0.5 ? 5 : 6;
         var n;
-        for (n = 0; n < bigCount; n++) {
-          var placed = false;
-          var attempt;
+        var attempt;
+        var bx;
+        var by;
+        for (n = 0; n < midCount; n++) {
           for (attempt = 0; attempt < 300; attempt++) {
-            var bx = Math.floor(rand() * w);
-            var by = Math.floor(rand() * h);
+            bx = Math.floor(rand() * w);
+            by = Math.floor(rand() * h);
             if (data[(by * w + bx) * 4 + 3] === 0) continue;
             punchSpot(data, w, h, bx, by, 10, rand);
-            placed = true;
             break;
           }
-          if (!placed) break;
+        }
+        for (n = 0; n < bigCount; n++) {
+          for (attempt = 0; attempt < 300; attempt++) {
+            bx = Math.floor(rand() * w);
+            by = Math.floor(rand() * h);
+            if (data[(by * w + bx) * 4 + 3] === 0) continue;
+            punchSpot(data, w, h, bx, by, 20, rand);
+            break;
+          }
         }
       }
 
