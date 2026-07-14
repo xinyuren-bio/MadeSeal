@@ -217,17 +217,15 @@
 
   /**
    * 根据 0-100 滑块值计算做旧参数（高值区间非线性增强）
-   * 以雪花碎点硬挖空模拟缺墨，避免半透明把红色冲浅
+   * 以 2～3 像素雪花碎点硬挖空模拟缺墨，避免半透明把红色冲浅
    */
   function getAgingParams(level) {
     if (!level || level <= 0) return null;
     var t = Math.min(100, Math.max(0, level)) / 100;
     var t2 = t * t;
     return {
-      // 单像素雪花碎点
-      flake: t * 0.14 + t2 * 0.12,
-      // 偶发 2～3 像素小簇（仍很碎）
-      cluster: t * 0.035 + t2 * 0.03,
+      // 雪花碎点密度
+      flake: t * 0.12 + t2 * 0.1,
       // 局部印泥略加深
       darken: t * 0.08 + t2 * 0.06,
       darkenMin: 0.72,
@@ -237,13 +235,11 @@
   }
 
   /**
-   * 清除单个像素及其少量邻居，形成细碎雪花点
+   * 挖 2～3 像素的随机小簇，形成略大的雪花碎点
    */
-  function punchFlake(data, w, h, cx, cy, spread, rand) {
-    data[(cy * w + cx) * 4 + 3] = 0;
-    if (spread <= 0) return;
-    // 十字或对角随机邻点，保持碎而不成片
+  function punchFlake(data, w, h, cx, cy, rand) {
     var dirs = [
+      [0, 0],
       [1, 0],
       [-1, 0],
       [0, 1],
@@ -253,19 +249,25 @@
       [1, -1],
       [-1, -1],
     ];
-    var n = 1 + Math.floor(rand() * spread);
-    for (var k = 0; k < n; k++) {
-      var d = dirs[Math.floor(rand() * dirs.length)];
-      var x = cx + d[0];
-      var y = cy + d[1];
+    // 随机取 2 或 3 个像素
+    var count = rand() < 0.55 ? 2 : 3;
+    // 打乱方向顺序后取前 count 个
+    for (var i = dirs.length - 1; i > 0; i--) {
+      var j = Math.floor(rand() * (i + 1));
+      var tmp = dirs[i];
+      dirs[i] = dirs[j];
+      dirs[j] = tmp;
+    }
+    for (var k = 0; k < count; k++) {
+      var x = cx + dirs[k][0];
+      var y = cy + dirs[k][1];
       if (x < 0 || y < 0 || x >= w || y >= h) continue;
-      if (rand() > 0.7) continue;
       data[(y * w + x) * 4 + 3] = 0;
     }
   }
 
   /**
-   * 做旧老化：雪花碎点挖空，保留像素保持不透明原色
+   * 做旧老化：2～3 像素雪花碎点挖空，保留像素保持不透明原色
    */
   function applyAging(canvas, level) {
     var p = getAgingParams(level);
@@ -293,15 +295,10 @@
 
           var r = rand();
           if (r < p.flake * intensity) {
-            punchFlake(data, w, h, x, y, 0, rand);
+            punchFlake(data, w, h, x, y, rand);
             continue;
           }
-          if (r < (p.flake + p.cluster) * intensity) {
-            // spread 1～2：极小簇，像雪花碎屑
-            punchFlake(data, w, h, x, y, 1 + Math.floor(rand() * 2), rand);
-            continue;
-          }
-          if (r < (p.flake + p.cluster + p.darken) * intensity) {
+          if (r < (p.flake + p.darken) * intensity) {
             var ink = p.darkenMin + rand() * (p.darkenMax - p.darkenMin);
             data[i] = Math.max(0, Math.floor(data[i] * ink));
             data[i + 1] = Math.max(0, Math.floor(data[i + 1] * ink * 0.85));
