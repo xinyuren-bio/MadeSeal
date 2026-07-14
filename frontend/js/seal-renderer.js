@@ -235,6 +235,27 @@
   }
 
   /**
+   * 根据坐标生成 0～1 稳定伪随机（不依赖扫描顺序）
+   */
+  function hash01(x, y, salt) {
+    var n =
+      Math.imul(x + salt * 3, 374761393) ^ Math.imul(y + salt * 7, 668265263);
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+  }
+
+  /**
+   * 创建独立随机流
+   */
+  function makeRand(s) {
+    var seed = (Math.abs(s | 0) % 2147483646) + 1;
+    return function () {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+  }
+
+  /**
    * 挖 4～5 像素的随机小簇，形成略大的雪花碎点
    */
   function punchFlake(data, w, h, cx, cy, rand) {
@@ -253,9 +274,7 @@
       [0, 2],
       [0, -2],
     ];
-    // 随机取 4 或 5 个像素
     var count = rand() < 0.55 ? 4 : 5;
-    // 打乱方向顺序后取前 count 个
     for (var i = dirs.length - 1; i > 0; i--) {
       var j = Math.floor(rand() * (i + 1));
       var tmp = dirs[i];
@@ -293,7 +312,30 @@
   }
 
   /**
-   * 做旧老化：细碎雪花点 + 少量中等缺墨点，保留像素保持不透明原色
+   * 在章面内独立放置若干白点（不受标题墨迹多少影响随机序列）
+   */
+  function placeSpots(data, w, h, count, size, rand) {
+    var cx = w / 2;
+    var cy = h / 2;
+    var maxR = Math.min(w, h) * 0.48;
+    var n;
+    var attempt;
+    for (n = 0; n < count; n++) {
+      for (attempt = 0; attempt < 600; attempt++) {
+        var ang = rand() * Math.PI * 2;
+        var rad = Math.sqrt(rand()) * maxR;
+        var bx = Math.floor(cx + Math.cos(ang) * rad);
+        var by = Math.floor(cy + Math.sin(ang) * rad);
+        if (bx < 0 || by < 0 || bx >= w || by >= h) continue;
+        if (data[(by * w + bx) * 4 + 3] === 0) continue;
+        punchSpot(data, w, h, bx, by, size, rand);
+        break;
+      }
+    }
+  }
+
+  /**
+   * 做旧老化：坐标稳定碎点 + 独立种子大白点，标题变化时白点不消失
    */
   function applyAging(canvas, level) {
     var p = getAgingParams(level);
@@ -306,12 +348,16 @@
     for (var pass = 0; pass < p.passes; pass++) {
       var imgData = ctx.getImageData(0, 0, w, h);
       var data = imgData.data;
-      var seed = 42 + pass * 9973;
       var intensity = pass === 0 ? 1 : 0.5;
+      var salt = 10007 + pass * 97;
 
-      function rand() {
-        seed = (seed * 16807) % 2147483647;
-        return seed / 2147483647;
+      // 大白点用固定种子，不依赖墨像素扫描次数
+      if (pass === 0) {
+        var spotRand = makeRand(202603 + Math.round(level * 31));
+        var midCount = 3 + (spotRand() < 0.5 ? 1 : 0);
+        var bigCount = 30 + Math.floor(spotRand() * 11);
+        placeSpots(data, w, h, midCount, 10, spotRand);
+        placeSpots(data, w, h, bigCount, 20, spotRand);
       }
 
       for (var y = 0; y < h; y++) {
@@ -319,45 +365,22 @@
           var i = (y * w + x) * 4;
           if (data[i + 3] === 0) continue;
 
-          var r = rand();
+          var r = hash01(x, y, salt);
           if (r < p.flake * intensity) {
-            punchFlake(data, w, h, x, y, rand);
+            var local = makeRand(
+              1 + Math.floor(hash01(x, y, salt + 777) * 1e9)
+            );
+            punchFlake(data, w, h, x, y, local);
             continue;
           }
           if (r < (p.flake + p.darken) * intensity) {
-            var ink = p.darkenMin + rand() * (p.darkenMax - p.darkenMin);
+            var ink =
+              p.darkenMin +
+              hash01(x, y, salt + 888) * (p.darkenMax - p.darkenMin);
             data[i] = Math.max(0, Math.floor(data[i] * ink));
             data[i + 1] = Math.max(0, Math.floor(data[i + 1] * ink * 0.85));
             data[i + 2] = Math.max(0, Math.floor(data[i + 2] * ink * 0.85));
             data[i + 3] = 255;
-          }
-        }
-      }
-
-      // 整章随机补中等/较大缺墨点（仅第一遍，避免翻倍）
-      if (pass === 0) {
-        var midCount = rand() < 0.5 ? 3 : 4;
-        var bigCount = 30 + Math.floor(rand() * 11);
-        var n;
-        var attempt;
-        var bx;
-        var by;
-        for (n = 0; n < midCount; n++) {
-          for (attempt = 0; attempt < 300; attempt++) {
-            bx = Math.floor(rand() * w);
-            by = Math.floor(rand() * h);
-            if (data[(by * w + bx) * 4 + 3] === 0) continue;
-            punchSpot(data, w, h, bx, by, 10, rand);
-            break;
-          }
-        }
-        for (n = 0; n < bigCount; n++) {
-          for (attempt = 0; attempt < 300; attempt++) {
-            bx = Math.floor(rand() * w);
-            by = Math.floor(rand() * h);
-            if (data[(by * w + bx) * 4 + 3] === 0) continue;
-            punchSpot(data, w, h, bx, by, 20, rand);
-            break;
           }
         }
       }
