@@ -337,7 +337,7 @@
       // 整章随机补中等/较大缺墨点（仅第一遍，避免翻倍）
       if (pass === 0) {
         var midCount = rand() < 0.5 ? 3 : 4;
-        var bigCount = rand() < 0.5 ? 5 : 6;
+        var bigCount = 30 + Math.floor(rand() * 11);
         var n;
         var attempt;
         var bx;
