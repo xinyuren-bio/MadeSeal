@@ -36,6 +36,49 @@
   }
 
   /**
+   * 解析 #RRGGBB 为 RGB
+   */
+  function parseHex(hex) {
+    var h = (hex || "#bb1918").replace("#", "");
+    if (h.length !== 6) h = "bb1918";
+    return {
+      r: parseInt(h.slice(0, 2), 16),
+      g: parseInt(h.slice(2, 4), 16),
+      b: parseInt(h.slice(4, 6), 16),
+    };
+  }
+
+  /**
+   * RGB 转十六进制
+   */
+  function toHex(r, g, b) {
+    function pad(n) {
+      var s = Math.max(0, Math.min(255, Math.round(n))).toString(16);
+      return s.length === 1 ? "0" + s : s;
+    }
+    return "#" + pad(r) + pad(g) + pad(b);
+  }
+
+  /**
+   * 按加深滑块压暗颜色，并略提高饱和，贴近印泥深色
+   */
+  function deepenColor(hex, depth) {
+    var d = Math.min(100, Math.max(0, depth != null ? Number(depth) : 40)) / 100;
+    if (d <= 0) return hex || "#bb1918";
+    var rgb = parseHex(hex);
+    // 向更深的印泥红 (#5c0a0a) 插值，同时整体压暗
+    var tr = 92;
+    var tg = 10;
+    var tb = 10;
+    var r = rgb.r * (1 - d) + tr * d;
+    var g = rgb.g * (1 - d) + tg * d;
+    var b = rgb.b * (1 - d) + tb * d;
+    // 再额外压暗亮度，高加深时更明显
+    var shade = 1 - d * 0.35;
+    return toHex(r * shade, g * shade, b * shade);
+  }
+
+  /**
    * 将加粗滑块(0-100)映射为 CSS font-weight
    */
   function fontWeight(cfg) {
@@ -292,7 +335,7 @@
     var s = scaleOf(cfg);
     var cx = size / 2;
     var cy = size / 2;
-    var color = cfg.color || "#bb1918";
+    var color = deepenColor(cfg.color || "#bb1918", cfg.colorDepth);
     var font = fontFamily(cfg);
     var weight = fontWeight(cfg);
     var borderW = (cfg.borderSize || 12) * s;

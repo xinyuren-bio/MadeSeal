@@ -8,6 +8,7 @@
     type: "circle",
     size: 400,
     color: "#bb1918",
+    colorDepth: 40,
     font: "sourceHan",
     fontBold: 48,
     agingLevel: 42,
