@@ -217,19 +217,23 @@
 
   /**
    * 根据 0-100 滑块值计算做旧参数（高值区间非线性增强）
-   * 以硬挖空洞模拟缺墨，避免半透明把红色冲浅
+   * 以成片硬挖空模拟缺墨，避免半透明把红色冲浅
    */
   function getAgingParams(level) {
     if (!level || level <= 0) return null;
     var t = Math.min(100, Math.max(0, level)) / 100;
     var t2 = t * t;
     return {
-      // 较大缺墨孔
-      hole: t * 0.28 + t2 * 0.2,
-      // 细密砂点孔（替代原先的半透明淡化）
-      grit: t * 0.22 + t2 * 0.16,
-      // 局部印泥略加深，制造深浅不均但颜色仍不发粉
-      darken: t * 0.1 + t2 * 0.08,
+      // 大块缺墨生成概率（按实体像素抽样）
+      blobChance: t * 0.0035 + t2 * 0.0045,
+      blobMinR: 3 + Math.floor(t * 3),
+      blobMaxR: 7 + Math.floor(t * 10),
+      // 中等砂点
+      gritChance: t * 0.01 + t2 * 0.012,
+      gritMinR: 1,
+      gritMaxR: 2 + Math.floor(t * 3),
+      // 局部印泥略加深
+      darken: t * 0.08 + t2 * 0.06,
       darkenMin: 0.72,
       darkenMax: 0.92,
       passes: t >= 0.4 ? 2 : 1,
@@ -237,7 +241,27 @@
   }
 
   /**
-   * 做旧老化：用透明挖空表现磨损，保留像素保持不透明原色
+   * 在像素数据上挖一个不规则圆孔
+   */
+  function punchHole(data, w, h, cx, cy, radius, rand) {
+    var rMax = Math.ceil(radius);
+    var r2 = radius * radius;
+    for (var dy = -rMax; dy <= rMax; dy++) {
+      for (var dx = -rMax; dx <= rMax; dx++) {
+        var dist2 = dx * dx + dy * dy;
+        if (dist2 > r2) continue;
+        // 边缘随机咬蚀，形成不规则缺墨轮廓
+        if (dist2 > r2 * 0.55 && rand() > 0.55) continue;
+        var x = cx + dx;
+        var y = cy + dy;
+        if (x < 0 || y < 0 || x >= w || y >= h) continue;
+        data[(y * w + x) * 4 + 3] = 0;
+      }
+    }
+  }
+
+  /**
+   * 做旧老化：成片透明挖空表现磨损，保留像素保持不透明原色
    */
   function applyAging(canvas, level) {
     var p = getAgingParams(level);
@@ -246,6 +270,8 @@
     var ctx = canvas.getContext("2d");
     var w = canvas.width;
     var h = canvas.height;
+    // 按画布分辨率放大孔径，避免高清下看起来太碎
+    var scale = Math.max(1, w / 400);
 
     for (var pass = 0; pass < p.passes; pass++) {
       var imgData = ctx.getImageData(0, 0, w, h);
@@ -258,31 +284,44 @@
         return seed / 2147483647;
       }
 
-      for (var i = 0; i < data.length; i += 4) {
-        if (data[i + 3] === 0) continue;
-        var r = rand();
+      var blobs = [];
+      var grit = [];
 
-        // 缺墨：直接挖空，露出纸色，不把红变浅
-        if (r < p.hole * intensity) {
-          data[i + 3] = 0;
-          continue;
-        }
+      for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+          var i = (y * w + x) * 4;
+          if (data[i + 3] === 0) continue;
 
-        // 细砂点缺墨
-        if (r < (p.hole + p.grit) * intensity) {
-          data[i + 3] = 0;
-          continue;
-        }
+          if (rand() < p.blobChance * intensity) {
+            var br =
+              (p.blobMinR + rand() * (p.blobMaxR - p.blobMinR + 1)) * scale;
+            blobs.push({ x: x, y: y, r: br });
+            continue;
+          }
 
-        // 少量区域略加深（不降低透明度）
-        if (r < (p.hole + p.grit + p.darken) * intensity) {
-          var ink = p.darkenMin + rand() * (p.darkenMax - p.darkenMin);
-          data[i] = Math.max(0, Math.floor(data[i] * ink));
-          data[i + 1] = Math.max(0, Math.floor(data[i + 1] * ink * 0.85));
-          data[i + 2] = Math.max(0, Math.floor(data[i + 2] * ink * 0.85));
-          // 强制保持不透明，避免透白发粉
-          if (data[i + 3] > 0) data[i + 3] = 255;
+          if (rand() < p.gritChance * intensity) {
+            var gr =
+              (p.gritMinR + rand() * (p.gritMaxR - p.gritMinR + 1)) * scale;
+            grit.push({ x: x, y: y, r: gr });
+            continue;
+          }
+
+          if (rand() < p.darken * intensity) {
+            var ink = p.darkenMin + rand() * (p.darkenMax - p.darkenMin);
+            data[i] = Math.max(0, Math.floor(data[i] * ink));
+            data[i + 1] = Math.max(0, Math.floor(data[i + 1] * ink * 0.85));
+            data[i + 2] = Math.max(0, Math.floor(data[i + 2] * ink * 0.85));
+            data[i + 3] = 255;
+          }
         }
+      }
+
+      var k;
+      for (k = 0; k < grit.length; k++) {
+        punchHole(data, w, h, grit[k].x, grit[k].y, grit[k].r, rand);
+      }
+      for (k = 0; k < blobs.length; k++) {
+        punchHole(data, w, h, blobs[k].x, blobs[k].y, blobs[k].r, rand);
       }
 
       ctx.putImageData(imgData, 0, 0);
