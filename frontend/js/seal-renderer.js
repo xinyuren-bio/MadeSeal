@@ -39,7 +39,7 @@
    * 将加粗滑块(0-100)映射为 CSS font-weight
    */
   function fontWeight(cfg) {
-    var bold = cfg.fontBold != null ? Number(cfg.fontBold) : 70;
+    var bold = cfg.fontBold != null ? Number(cfg.fontBold) : 48;
     bold = Math.min(100, Math.max(0, bold));
     // 0→400，50→700，100→900
     var w = 400 + Math.round((bold / 100) * 500);
@@ -55,7 +55,7 @@
    * 额外描边加粗宽度（系统字体字重不够时补充笔画厚度）
    */
   function boldStrokeWidth(cfg, fontSize) {
-    var bold = cfg.fontBold != null ? Number(cfg.fontBold) : 70;
+    var bold = cfg.fontBold != null ? Number(cfg.fontBold) : 48;
     bold = Math.min(100, Math.max(0, bold));
     if (bold <= 30) return 0;
     // 30 以上开始描边加粗，最高约字号的 12%

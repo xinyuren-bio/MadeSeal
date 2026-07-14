@@ -9,7 +9,7 @@
     size: 400,
     color: "#bb1918",
     font: "sourceHan",
-    fontBold: 70,
+    fontBold: 48,
     agingLevel: 42,
 
     sealFormat: "standard",
