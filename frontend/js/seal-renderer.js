@@ -271,7 +271,27 @@
   }
 
   /**
-   * 做旧老化：4～5 像素雪花碎点挖空，保留像素保持不透明原色
+   * 挖约 10 像素的不规则中等缺墨点
+   */
+  function punchSpot(data, w, h, cx, cy, count, rand) {
+    var cleared = 0;
+    var tries = 0;
+    while (cleared < count && tries < count * 12) {
+      tries++;
+      var dx = Math.floor(rand() * 7) - 3;
+      var dy = Math.floor(rand() * 7) - 3;
+      var x = cx + dx;
+      var y = cy + dy;
+      if (x < 0 || y < 0 || x >= w || y >= h) continue;
+      var idx = (y * w + x) * 4 + 3;
+      if (data[idx] === 0) continue;
+      data[idx] = 0;
+      cleared++;
+    }
+  }
+
+  /**
+   * 做旧老化：细碎雪花点 + 少量中等缺墨点，保留像素保持不透明原色
    */
   function applyAging(canvas, level) {
     var p = getAgingParams(level);
@@ -309,6 +329,25 @@
             data[i + 2] = Math.max(0, Math.floor(data[i + 2] * ink * 0.85));
             data[i + 3] = 255;
           }
+        }
+      }
+
+      // 整章随机补 3～4 个约 10 像素的中等缺墨点（仅第一遍，避免翻倍）
+      if (pass === 0) {
+        var bigCount = rand() < 0.5 ? 3 : 4;
+        var n;
+        for (n = 0; n < bigCount; n++) {
+          var placed = false;
+          var attempt;
+          for (attempt = 0; attempt < 300; attempt++) {
+            var bx = Math.floor(rand() * w);
+            var by = Math.floor(rand() * h);
+            if (data[(by * w + bx) * 4 + 3] === 0) continue;
+            punchSpot(data, w, h, bx, by, 10, rand);
+            placed = true;
+            break;
+          }
+          if (!placed) break;
         }
       }
 
