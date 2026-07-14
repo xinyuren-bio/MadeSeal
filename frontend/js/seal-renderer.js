@@ -217,51 +217,55 @@
 
   /**
    * 根据 0-100 滑块值计算做旧参数（高值区间非线性增强）
-   * 以成片硬挖空模拟缺墨，避免半透明把红色冲浅
+   * 以雪花碎点硬挖空模拟缺墨，避免半透明把红色冲浅
    */
   function getAgingParams(level) {
     if (!level || level <= 0) return null;
     var t = Math.min(100, Math.max(0, level)) / 100;
     var t2 = t * t;
     return {
-      // 大块缺墨生成概率（按实体像素抽样）
-      blobChance: t * 0.0035 + t2 * 0.0045,
-      blobMinR: 3 + Math.floor(t * 3),
-      blobMaxR: 7 + Math.floor(t * 10),
-      // 中等砂点
-      gritChance: t * 0.01 + t2 * 0.012,
-      gritMinR: 1,
-      gritMaxR: 2 + Math.floor(t * 3),
+      // 单像素雪花碎点
+      flake: t * 0.14 + t2 * 0.12,
+      // 偶发 2～3 像素小簇（仍很碎）
+      cluster: t * 0.035 + t2 * 0.03,
       // 局部印泥略加深
       darken: t * 0.08 + t2 * 0.06,
       darkenMin: 0.72,
       darkenMax: 0.92,
-      passes: t >= 0.4 ? 2 : 1,
+      passes: t >= 0.5 ? 2 : 1,
     };
   }
 
   /**
-   * 在像素数据上挖一个不规则圆孔
+   * 清除单个像素及其少量邻居，形成细碎雪花点
    */
-  function punchHole(data, w, h, cx, cy, radius, rand) {
-    var rMax = Math.ceil(radius);
-    var r2 = radius * radius;
-    for (var dy = -rMax; dy <= rMax; dy++) {
-      for (var dx = -rMax; dx <= rMax; dx++) {
-        var dist2 = dx * dx + dy * dy;
-        if (dist2 > r2) continue;
-        // 边缘随机咬蚀，形成不规则缺墨轮廓
-        if (dist2 > r2 * 0.55 && rand() > 0.55) continue;
-        var x = cx + dx;
-        var y = cy + dy;
-        if (x < 0 || y < 0 || x >= w || y >= h) continue;
-        data[(y * w + x) * 4 + 3] = 0;
-      }
+  function punchFlake(data, w, h, cx, cy, spread, rand) {
+    data[(cy * w + cx) * 4 + 3] = 0;
+    if (spread <= 0) return;
+    // 十字或对角随机邻点，保持碎而不成片
+    var dirs = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+      [1, 1],
+      [-1, 1],
+      [1, -1],
+      [-1, -1],
+    ];
+    var n = 1 + Math.floor(rand() * spread);
+    for (var k = 0; k < n; k++) {
+      var d = dirs[Math.floor(rand() * dirs.length)];
+      var x = cx + d[0];
+      var y = cy + d[1];
+      if (x < 0 || y < 0 || x >= w || y >= h) continue;
+      if (rand() > 0.7) continue;
+      data[(y * w + x) * 4 + 3] = 0;
     }
   }
 
   /**
-   * 做旧老化：成片透明挖空表现磨损，保留像素保持不透明原色
+   * 做旧老化：雪花碎点挖空，保留像素保持不透明原色
    */
   function applyAging(canvas, level) {
     var p = getAgingParams(level);
@@ -270,43 +274,34 @@
     var ctx = canvas.getContext("2d");
     var w = canvas.width;
     var h = canvas.height;
-    // 按画布分辨率放大孔径，避免高清下看起来太碎
-    var scale = Math.max(1, w / 400);
 
     for (var pass = 0; pass < p.passes; pass++) {
       var imgData = ctx.getImageData(0, 0, w, h);
       var data = imgData.data;
       var seed = 42 + pass * 9973;
-      var intensity = pass === 0 ? 1 : 0.55;
+      var intensity = pass === 0 ? 1 : 0.5;
 
       function rand() {
         seed = (seed * 16807) % 2147483647;
         return seed / 2147483647;
       }
 
-      var blobs = [];
-      var grit = [];
-
       for (var y = 0; y < h; y++) {
         for (var x = 0; x < w; x++) {
           var i = (y * w + x) * 4;
           if (data[i + 3] === 0) continue;
 
-          if (rand() < p.blobChance * intensity) {
-            var br =
-              (p.blobMinR + rand() * (p.blobMaxR - p.blobMinR + 1)) * scale;
-            blobs.push({ x: x, y: y, r: br });
+          var r = rand();
+          if (r < p.flake * intensity) {
+            punchFlake(data, w, h, x, y, 0, rand);
             continue;
           }
-
-          if (rand() < p.gritChance * intensity) {
-            var gr =
-              (p.gritMinR + rand() * (p.gritMaxR - p.gritMinR + 1)) * scale;
-            grit.push({ x: x, y: y, r: gr });
+          if (r < (p.flake + p.cluster) * intensity) {
+            // spread 1～2：极小簇，像雪花碎屑
+            punchFlake(data, w, h, x, y, 1 + Math.floor(rand() * 2), rand);
             continue;
           }
-
-          if (rand() < p.darken * intensity) {
+          if (r < (p.flake + p.cluster + p.darken) * intensity) {
             var ink = p.darkenMin + rand() * (p.darkenMax - p.darkenMin);
             data[i] = Math.max(0, Math.floor(data[i] * ink));
             data[i + 1] = Math.max(0, Math.floor(data[i + 1] * ink * 0.85));
@@ -314,14 +309,6 @@
             data[i + 3] = 255;
           }
         }
-      }
-
-      var k;
-      for (k = 0; k < grit.length; k++) {
-        punchHole(data, w, h, grit[k].x, grit[k].y, grit[k].r, rand);
-      }
-      for (k = 0; k < blobs.length; k++) {
-        punchHole(data, w, h, blobs[k].x, blobs[k].y, blobs[k].r, rand);
       }
 
       ctx.putImageData(imgData, 0, 0);
